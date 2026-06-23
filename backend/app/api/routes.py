@@ -1,10 +1,22 @@
+from pathlib import Path
+
 from fastapi import APIRouter, File, UploadFile, HTTPException
 from pydantic import BaseModel
-from app.api.schemas import KPIInfo, KPIInteraction, DatasetUploadResponse
+from app.api.schemas import (
+    KPIInfo,
+    KPIInteraction,
+    DatasetUploadResponse,
+    ForecastRequest,
+    ForecastResponse,
+    ForecastComparisonResponse,
+)
 from app.services.dataset_service import inspect_dataset, save_dataset
 from app.services.kpi_definitions import get_kpi_definitions, get_kpi_interactions
+from app.ml.forecasting import TrafficForecastEngine
 
 router = APIRouter()
+
+forecast_engine = TrafficForecastEngine()
 
 
 class HealthResponse(BaseModel):
@@ -44,3 +56,31 @@ def kpis():
 @router.get("/kpis/interactions", response_model=list[KPIInteraction])
 def kpi_interactions():
     return get_kpi_interactions()
+
+
+@router.post("/forecast", response_model=list[ForecastResponse])
+def forecast(request: ForecastRequest):
+    return forecast_engine.predict(request.model_dump())
+
+
+@router.post("/forecast/compare", response_model=ForecastComparisonResponse)
+def forecast_compare(dataset_id: str, target_column: str = "concurrent_users"):
+    # This endpoint can be extended to load dataset metadata from a database.
+    dataset_path = next(
+        (str(path) for path in Path("./data").glob(f"{dataset_id}_*.csv")), None
+    )
+    if dataset_path is None:
+        raise HTTPException(status_code=404, detail="Dataset not found.")
+
+    comparison = forecast_engine.forecast_from_csv(dataset_path, target_column=target_column)
+    metrics = [
+        {
+            "model_name": name,
+            **metric,
+        }
+        for name, metric in comparison["metrics"].items()
+    ]
+    return {
+        "best_model": comparison["best_model"],
+        "metrics": metrics,
+    }

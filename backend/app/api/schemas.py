@@ -42,6 +42,19 @@ class ForecastResponse(BaseModel):
     predicted_network_utilization: float
 
 
+class ForecastComparisonResult(BaseModel):
+    model_name: str
+    mae: float
+    rmse: float
+    mape: float
+    r2: float
+
+
+class ForecastComparisonResponse(BaseModel):
+    best_model: str
+    metrics: List[ForecastComparisonResult]
+
+
 class CongestionPredictionRequest(BaseModel):
     concurrent_users: int
     requests_per_second: int
