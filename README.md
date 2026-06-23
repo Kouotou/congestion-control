@@ -1,51 +1,154 @@
 # AI-Driven Dynamic Traffic Control and Congestion Management
 
-A university-focused end-to-end decision support platform for flash crowd events, traffic forecasting, congestion detection, resource allocation, QoE prediction, and QoS recommendations.
+An end-to-end decision support platform for flash crowd events and network congestion control. It combines a FastAPI backend, ML forecasting and decision support logic, and a Next.js frontend dashboard for visualization and interaction.
 
-## Workspace Structure
+## What this project does
 
-- `backend/` – FastAPI service, ML pipelines, database integration
-- `frontend/` – Next.js dashboard with TailwindCSS
-- `data/` – Dataset uploads and staging (empty placeholder)
-- `notebooks/` – exploratory ML notebooks and methodology
-- `docs/` – architecture, deployment guide, reports
-- `tests/` – unit and integration tests
-- `.congestionctrl/` – Python virtual environment root
+- Forecasts traffic and user load using historical and current KPI inputs
+- Detects congestion probability for flash crowd scenarios
+- Predicts QoE from QoS measurements
+- Recommends QoS and resource allocation settings
+- Supports scenario-based what-if simulation for decision support
 
-## Setup
+## Repository structure
 
-1. Create or activate the Python virtual environment in the workspace root:
+- `backend/` – FastAPI application, API routes, data services, ML pipeline, and decision support logic
+- `frontend/` – Next.js dashboard with React and Tailwind CSS
+- `data/` – dataset files and staging area
+- `docs/` – architecture and deployment documentation
+- `notebooks/` – Jupyter notebooks for analysis and model exploration
+- `tests/` – Python unit and integration tests
 
-   ```powershell
-   python -m venv .congestionctrl
-   .\.congestionctrl\Scripts\Activate.ps1
-   ```
+## Prerequisites
 
-2. Install backend dependencies:
+- Python 3.11+ or 3.12+
+- Node.js 18+ / npm 10+
+- Git (for cloning or pushing changes)
 
-   ```powershell
-   pip install -r backend/requirements.txt
-   ```
+## Local setup
 
-3. Install frontend dependencies from `frontend/`.
+### 1. Clone the repository
 
-4. Start the backend service:
+```powershell
+git clone https://github.com/Kouotou/congestion-control.git
+cd congestioncontrol
+```
 
-   ```powershell
-   uvicorn backend.app.main:app --reload
-   ```
+### 2. Setup Python backend
 
-5. Start the frontend app from `frontend/`.
+```powershell
+python -m venv .congestionctrl
+.\.congestionctrl\Scripts\Activate.ps1
+pip install --upgrade pip
+pip install -r backend/requirements.txt
+```
 
-## Project Phases
+### 3. Setup frontend
 
-1. Traffic Forecasting
-2. Congestion Detection
-3. Dynamic Resource Allocation
-4. QoE Prediction
-5. QoS Recommendation Engine
+```powershell
+cd frontend
+npm install
+```
 
-## Notes
+## Run the application locally
 
-- Modular dataset upload and retraining support is planned.
-- A full CI/CD pipeline and Docker support are included.
+### 1. Start the backend
+
+From the repository root or the backend folder:
+
+```powershell
+cd backend
+uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Backend API will be available at `http://localhost:8000`.
+
+### 2. Start the frontend
+
+Open a second terminal and run:
+
+```powershell
+cd frontend
+npm run dev
+```
+
+Frontend dashboard will be available at `http://localhost:3000`.
+
+## How the app is structured
+
+### Backend
+
+- `backend/app/main.py` – FastAPI app entrypoint
+- `backend/app/api/routes.py` – API endpoints for datasets, forecast, congestion, QoE, QoS recommendation, and what-if simulation
+- `backend/app/api/schemas.py` – Pydantic request/response schemas
+- `backend/app/services/` – business logic and data service utilities
+- `backend/app/ml/` – forecasting engine and model pipeline
+
+### Frontend
+
+- `frontend/pages/index.js` – dashboard landing page
+- `frontend/pages/api/*.js` – proxy routes to the backend API
+- `frontend/components/` – dashboard panels and UI widgets
+- `frontend/styles/` – global CSS and styling support
+
+## Testing
+
+### Backend tests
+
+From the repository root with the Python venv activated:
+
+```powershell
+pytest
+```
+
+If tests are scoped to backend packages, you can run:
+
+```powershell
+cd backend
+pytest
+```
+
+### Frontend linting
+
+From `frontend/`:
+
+```powershell
+npm run lint
+```
+
+## Environment configuration
+
+Use `NEXT_PUBLIC_API_BASE_URL` in the frontend to point to a deployed or alternate backend URL.
+
+Example:
+
+```powershell
+$env:NEXT_PUBLIC_API_BASE_URL = 'http://localhost:8000'
+npm run dev
+```
+
+## Deployment notes
+
+- Ensure the backend is accessible before starting the frontend
+- Use a production build for deployment:
+
+```powershell
+cd frontend
+npm run build
+npm run start
+```
+
+- In production, set the frontend environment variable to your backend host.
+
+## Useful commands
+
+- `python -m venv .congestionctrl` – create Python virtual environment
+- `pip install -r backend/requirements.txt` – install backend packages
+- `npm install` – install frontend packages
+- `uvicorn backend.app.main:app --reload` – run backend locally
+- `npm run dev` – run frontend dashboard locally
+- `pytest` – run Python tests
+
+## Contact
+
+If you need help understanding the dashboard or API, open an issue in this repository or review `docs/architecture.md` for deeper design details.
