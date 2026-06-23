@@ -11,6 +11,18 @@ class DatasetUploadResponse(BaseModel):
     message: str
 
 
+class DatasetInfoResponse(BaseModel):
+    dataset_id: str
+    filename: str
+    name: str
+    description: str
+    dataset_type: str
+    row_count: int
+    column_count: int
+    columns: List[str]
+    path: str
+
+
 class KPIInfo(BaseModel):
     name: str
     description: str

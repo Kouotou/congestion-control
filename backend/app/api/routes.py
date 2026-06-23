@@ -1,17 +1,25 @@
 from pathlib import Path
+from typing import Any, Dict
 
 from fastapi import APIRouter, File, UploadFile, HTTPException
 from pydantic import BaseModel
 from app.api.schemas import (
+    DatasetInfoResponse,
+    DatasetUploadResponse,
     KPIInfo,
     KPIInteraction,
-    DatasetUploadResponse,
+    ForecastComparisonResponse,
     ForecastRequest,
     ForecastResponse,
-    ForecastComparisonResponse,
     ForecastTrainingResponse,
 )
-from app.services.dataset_service import inspect_dataset, save_dataset
+from app.services.dataset_service import (
+    get_available_datasets,
+    get_dataset_info,
+    inspect_dataset,
+    save_dataset,
+    standardize_dataset,
+)
 from app.services.kpi_definitions import get_kpi_definitions, get_kpi_interactions
 from app.ml.forecasting import TrafficForecastEngine
 from app.ml.pipeline import ForecastPipeline
@@ -61,6 +69,19 @@ def kpi_interactions():
     return get_kpi_interactions()
 
 
+@router.get("/datasets", response_model=list[DatasetInfoResponse])
+def datasets():
+    return get_available_datasets()
+
+
+@router.get("/datasets/{dataset_id}", response_model=DatasetInfoResponse)
+def dataset_info(dataset_id: str):
+    info = get_dataset_info(dataset_id)
+    if info is None:
+        raise HTTPException(status_code=404, detail="Dataset not found.")
+    return info
+
+
 @router.post("/forecast", response_model=list[ForecastResponse])
 def forecast(request: ForecastRequest):
     return forecast_engine.predict(request.model_dump())
@@ -68,45 +89,47 @@ def forecast(request: ForecastRequest):
 
 @router.post("/forecast/compare", response_model=ForecastComparisonResponse)
 def forecast_compare(dataset_id: str, target_column: str = "concurrent_users"):
-    dataset_path = next(
-        (str(path) for path in Path("./data").glob(f"{dataset_id}_*.csv")), None
-    )
-    if dataset_path is None:
+    try:
+        df = standardize_dataset(dataset_id)
+    except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Dataset not found.")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
-    comparison = pipeline.train_from_csv(dataset_path, target_column=target_column)
+    comparison = pipeline.train_models(pipeline.prepare_features(df, target_column), target_column)
     metrics = [
         {
             "model_name": name,
             **metric,
         }
-        for name, metric in comparison["metrics"].items()
+        for name, metric in comparison.to_dict().items()
     ]
     return {
-        "best_model": comparison["best_model"],
+        "best_model": comparison.best_model(),
         "metrics": metrics,
     }
 
 
 @router.post("/forecast/train", response_model=ForecastTrainingResponse)
 def forecast_train(dataset_id: str, target_column: str = "concurrent_users"):
-    dataset_path = next(
-        (str(path) for path in Path("./data").glob(f"{dataset_id}_*.csv")), None
-    )
-    if dataset_path is None:
+    try:
+        df = standardize_dataset(dataset_id)
+    except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Dataset not found.")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
-    training = pipeline.train_from_csv(dataset_path, target_column=target_column)
+    training = pipeline.train_models(pipeline.prepare_features(df, target_column), target_column)
     metrics = [
         {
             "model_name": name,
             **metric,
         }
-        for name, metric in training["metrics"].items()
+        for name, metric in training.to_dict().items()
     ]
     return {
         "dataset_id": dataset_id,
-        "best_model": training["best_model"],
+        "best_model": training.best_model(),
         "metrics": metrics,
         "message": "Forecast models trained and compared successfully.",
     }
