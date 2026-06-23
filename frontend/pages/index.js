@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import DatasetExplorer from '../components/DatasetExplorer'
 
 export default function Home() {
   return (
@@ -13,23 +14,27 @@ export default function Home() {
           <p className="mt-4 text-lg text-slate-700">
             A prototype interface for traffic forecasting, congestion detection, QoE prediction, and QoS recommendations.
           </p>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {[
-              'Dataset Explorer',
-              'KPI Monitoring',
-              'Traffic Forecasting',
-              'Congestion Detection',
-              'Resource Allocation',
-              'QoE Prediction',
-              'QoS Recommendation',
-              'What-If Simulator',
-              'Model Comparison',
-            ].map((card) => (
-              <div key={card} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-slate-900">{card}</h2>
-                <p className="mt-3 text-slate-600">Interactive module under development.</p>
-              </div>
-            ))}
+
+          <div className="mt-10 grid gap-6 xl:grid-cols-[640px_1fr]">
+            <DatasetExplorer />
+
+            <div className="grid gap-6">
+              {[
+                'KPI Monitoring',
+                'Traffic Forecasting',
+                'Congestion Detection',
+                'Resource Allocation',
+                'QoE Prediction',
+                'QoS Recommendation',
+                'What-If Simulator',
+                'Model Comparison',
+              ].map((card) => (
+                <div key={card} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-xl font-semibold text-slate-900">{card}</h2>
+                  <p className="mt-3 text-slate-600">Interactive module under development.</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </main>
