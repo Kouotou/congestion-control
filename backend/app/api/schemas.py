@@ -121,3 +121,41 @@ class QoSRecommendationResponse(BaseModel):
     required_servers: int
     predicted_qoe_score: float
     notes: Optional[str] = None
+
+
+class ResourceAllocationRequest(BaseModel):
+    predicted_concurrent_users: int
+    predicted_requests_per_second: int
+    expected_session_duration_minutes: int
+
+
+class ResourceAllocationResponse(BaseModel):
+    required_servers: int
+    required_cpu_pct: float
+    required_memory_gb: float
+    required_bandwidth_gbps: float
+    required_throughput_mbps: float
+    expected_users: int
+    latency_target_ms: float
+    notes: Optional[str] = None
+
+
+class WhatIfRequest(BaseModel):
+    concurrent_users: int
+    requests_per_second: float
+    traffic_volume_mb: float
+    network_utilization: float
+    latency_ms: float
+    jitter_ms: float
+    packet_loss_pct: float
+    throughput_mbps: float
+    response_time_ms: float
+    timeout_rate_pct: float
+    expected_session_duration_minutes: int
+
+
+class WhatIfResponse(BaseModel):
+    forecast_input: Dict[str, Any]
+    congestion: CongestionPredictionResponse
+    qoe: QoEPredictionResponse
+    qos_recommendation: QoSRecommendationResponse

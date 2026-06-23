@@ -4,14 +4,24 @@ from typing import Any, Dict
 from fastapi import APIRouter, File, UploadFile, HTTPException
 from pydantic import BaseModel
 from app.api.schemas import (
+    CongestionPredictionRequest,
+    CongestionPredictionResponse,
     DatasetInfoResponse,
     DatasetUploadResponse,
-    KPIInfo,
-    KPIInteraction,
     ForecastComparisonResponse,
     ForecastRequest,
     ForecastResponse,
     ForecastTrainingResponse,
+    KPIInfo,
+    KPIInteraction,
+    QoEPredictionRequest,
+    QoEPredictionResponse,
+    QoSRecommendationRequest,
+    QoSRecommendationResponse,
+    ResourceAllocationRequest,
+    ResourceAllocationResponse,
+    WhatIfRequest,
+    WhatIfResponse,
 )
 from app.services.dataset_service import (
     get_available_datasets,
@@ -19,6 +29,13 @@ from app.services.dataset_service import (
     inspect_dataset,
     save_dataset,
     standardize_dataset,
+)
+from app.services.decision_support import (
+    predict_congestion,
+    predict_qoe,
+    recommend_qos,
+    recommend_resource_allocation,
+    run_what_if_simulation,
 )
 from app.services.kpi_definitions import get_kpi_definitions, get_kpi_interactions
 from app.ml.forecasting import TrafficForecastEngine
@@ -133,3 +150,28 @@ def forecast_train(dataset_id: str, target_column: str = "concurrent_users"):
         "metrics": metrics,
         "message": "Forecast models trained and compared successfully.",
     }
+
+
+@router.post("/congestion", response_model=CongestionPredictionResponse)
+def congestion(request: CongestionPredictionRequest):
+    return predict_congestion(**request.model_dump())
+
+
+@router.post("/qoe", response_model=QoEPredictionResponse)
+def qoe(request: QoEPredictionRequest):
+    return predict_qoe(**request.model_dump())
+
+
+@router.post("/qos/recommend", response_model=QoSRecommendationResponse)
+def qos_recommend(request: QoSRecommendationRequest):
+    return recommend_qos(**request.model_dump())
+
+
+@router.post("/resource-allocation", response_model=ResourceAllocationResponse)
+def resource_allocation(request: ResourceAllocationRequest):
+    return recommend_resource_allocation(**request.model_dump())
+
+
+@router.post("/what-if", response_model=WhatIfResponse)
+def what_if(request: WhatIfRequest):
+    return run_what_if_simulation(request.model_dump())
