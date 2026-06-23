@@ -55,6 +55,13 @@ class ForecastComparisonResponse(BaseModel):
     metrics: List[ForecastComparisonResult]
 
 
+class ForecastTrainingResponse(BaseModel):
+    dataset_id: str
+    best_model: str
+    metrics: List[ForecastComparisonResult]
+    message: str
+
+
 class CongestionPredictionRequest(BaseModel):
     concurrent_users: int
     requests_per_second: int
