@@ -34,7 +34,8 @@ class TrafficForecastEngine:
     @staticmethod
     def _evaluate(y_true: np.ndarray, y_pred: np.ndarray) -> ForecastMetrics:
         mae = mean_absolute_error(y_true, y_pred)
-        rmse = mean_squared_error(y_true, y_pred, squared=False)
+        mse = mean_squared_error(y_true, y_pred)
+        rmse = np.sqrt(mse)
         mape = np.mean(np.abs((y_true - y_pred) / np.maximum(np.abs(y_true), 1))) * 100
         r2 = r2_score(y_true, y_pred) if len(y_true) > 1 else 0.0
         return ForecastMetrics(mae=mae, rmse=rmse, mape=mape, r2=r2)
